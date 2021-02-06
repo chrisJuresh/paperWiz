@@ -1,0 +1,5 @@
+#!/bin/bash
+
+color4=$(cat ~/.cache/wal/colors.sh | grep color4 | cut -d"'" -f2)
+echo ${color4}
+convert -size 100x100 xc:${color4} $HOME/.cache/paperWiz/tmp.png
