@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Set main wallpaper and apply pywal to programs that support it
+feh --bg-fill ${1} $HOME/.cache/paperWiz/grey.png && wal -i ${1} -n && xdotool key Alt_L+F5 && pywal-discord -t default && wal_steam.py
+
+# Fetch color4 from pyal
 color4=$(cat ~/.cache/wal/colors.sh | grep color4 | cut -d"'" -f2)
 echo ${color4}
-convert -size 100x100 xc:${color4} $HOME/.cache/paperWiz/tmp.png
+
+# Turn color4 into a small image
+convert -size 2x2 xc:${color4} $HOME/.cache/paperWiz/tmp.png
+
+# Apply the image to the left monitor
+feh --bg-fill ${1} $HOME/.cache/paperWiz/tmp.png
