@@ -1,14 +1,98 @@
 #!/bin/bash
 
-# Set main wallpaper and apply pywal to programs that support it
-feh --bg-fill ${1} $HOME/.cache/paperWiz/grey.png && wal -i ${1} -n && xdotool key Alt_L+F5 && pywal-discord -t default && wal_steam.py
+# Main monitor resolution
+	resw=2560
+	resh=1440
+	res=${resw}x${resh}
 
-# Fetch color4 from pyal
-color4=$(cat ~/.cache/wal/colors.sh | grep color4 | cut -d"'" -f2)
-echo ${color4}
+# .cache paths
+	grey=$HOME/.cache/paperWiz/grey.png
+	small=$HOME/.cache/paperWiz/small.png
+	large=$HOME/.cache/paperWiz/large.png
+	over=$HOME/.cache/paperWiz/over.png
+	maincolsmall=$HOME/.cache/paperWiz/maincolsmall.png
+	maincollarge=$HOME/.cache/paperWiz/maincolsmall.png
+	maincolover=$HOME/.cache/paperWiz/maincolover.png
+	maincol=$HOME/.cache/paperWiz/maincol.png
 
-# Turn color4 into a small image
-convert -size 2x2 xc:${color4} $HOME/.cache/paperWiz/tmp.png
+# Set the main wallpaper, make the second monitor grey, and update pywal for other apps.
+	{
+	feh --bg-fill ${1} ${grey}
+	wal -i ${1} -n
+# Update apps
+	xdotool key Alt_L+F5
+	pywal-discord -t default
+	wal_steam.py 
+	} &> /dev/null
 
-# Apply the image to the left monitor
-feh --bg-fill ${1} $HOME/.cache/paperWiz/tmp.png
+# Check res of main monitor
+	walresw=$(identify -format '%w' ${1})
+	walresh=$(identify -format '%h' ${1})
+	echo ${walresw} 
+	echo ${walresh}
+
+# color4
+if [[ ${2} -le 1 ]]
+then
+	# 1 Fetch color4 from pywal
+		color4=$(cat ~/.cache/wal/colors.sh | grep color4 | cut -d"'" -f2)
+		echo ${color4}
+
+	# 2 Turn color4 into a small image
+		convert -size 2x2 xc:${color4} ${small}
+
+	# 3 Apply color4 to second monitor
+		feh --bg-fill ${small}
+
+	# 4 Check if the wallpaper is bigger than the main monitor
+		if [[ ${walresw} -ge ${resw} ]] && [[ ${walresh} -ge ${resh} ]]
+		then
+
+		# 5 If so, apply it 
+			feh --bg-fill ${1} ${small}
+			
+		# 6 If not, turn color4 into an image matching the resolution of your main monitor
+		else	
+			convert -size ${res} xc:${color4} ${large}
+
+		# 7 Overlay the wallpaper on top of color4
+			magick composite -gravity center ${1} ${large} ${over}
+
+		# 8 Apply the overlay to the main monitor
+			feh --bg-fill ${over} ${small}	
+		fi
+fi
+
+# main color
+if [[ ${2} -eq 2 ]]
+then
+	# 1 Extract the main color in the image 
+		convert ${1} +dither -colors 1 ${maincol}
+
+	# 1 Find the hex of the main color
+		maincol=$(identify -verbose ${maincol} | grep '#' | head -n 1 | cut -d'#' -f2 | cut -f1 -d's')
+		echo ${maincol}
+
+	# 2 Convert the main color to a small color
+		convert -size 2x2 xc:#${maincol} ${maincolsmall}
+
+	# 3 Apply the main color to second monitor
+		feh --bg-fill ${maincolsmall}
+
+	# 4 Check if the wallpaper is smaller than the main monitor
+		if [[ ${walresw} -ge ${resw} ]] && [[ ${walresh} -ge ${resh} ]]
+	       	then
+
+       		# 5 If so, apply it 
+       			feh --bg-fill ${1} ${maincolsmall}
+       		# 6 Convert the main color to an image matching the resolution of your main monitor
+		else	
+			convert -size ${res} xc:'#'${maincol} ${maincollarge}
+
+		# 7 Overlay the wallpaper on top of the main color
+			magick composite -gravity center ${1} ${maincollarge} ${maincolover}
+
+		# 8 Apply the overlay to the main monitor
+			feh --bg-fill ${maincolover} ${maincolsmall}
+		fi
+fi
