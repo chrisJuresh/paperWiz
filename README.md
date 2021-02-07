@@ -16,6 +16,8 @@ This script pulls a colour from you wallpaper and does 2 things with it,
 
 You can either run the program with ./paperWiz or put the paperWiz file in your $PATH
 
+Remeber to change resw and resh to your main monitors resolutions 
+
 ## Usage
 `paperWiz /your/wallpaper` to use color4 from pywal
 `paperWiz /your/wallpaper 2` to use the most common colour in the image (extracted from imagemagick)
