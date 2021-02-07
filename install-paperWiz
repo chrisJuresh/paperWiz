@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cache=$HOME/.cache/paperWiz
+
+mkdir ${cache}
+mkdir ${cache}/small
+mkdir ${cache}/large
+mkdir ${cache}/over
+mkdir ${cache}/maincollarge
+mkdir ${cache}/maincolsmall
+mkdir ${cache}/maincolover
+
+convert -size 2x2 xc:#121212 $HOME/.cache/paperWiz/grey.png 
