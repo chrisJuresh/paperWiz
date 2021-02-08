@@ -46,7 +46,10 @@ then
 		fi
 		feh --bg-fill ${over} ${small}
 	fi
-else
+fi
+
+if [[ ${2} -ge "2" ]]
+then
 	maincol=$(convert ${1} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
 	convert -size 2x2 xc:\#${maincol} ${maincolsmall}
 	feh --bg-fill ${maincolsmall}
