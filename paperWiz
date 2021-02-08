@@ -28,7 +28,7 @@ walresw=$(identify -format '%w' ${1})
 walresh=$(identify -format '%h' ${1})
 
 
-if [[ -z ${2} ]]
+if [[ ${2} -le "1" ]] || [[ -z ${2} ]]
 then
 	color4=$(cat ~/.cache/wal/colors.sh | grep color4 | cut -d"'" -f2)
 	convert -size 2x2 xc:${color4} ${small}
@@ -38,8 +38,13 @@ then
 		feh --bg-fill ${1} ${small}
 	else	
 		convert -size ${res} xc:${color4} ${large}
-		magick composite -gravity center ${1} ${large} ${over}
-		feh --bg-fill ${over} ${small}	
+		if [[ -z ${3} ]]
+		then
+			magick composite -gravity center ${1} ${large} ${over}
+		else
+			magick composite -gravity south ${1} ${large} ${over}
+		fi
+		feh --bg-fill ${over} ${small}
 	fi
 else
 	maincol=$(convert ${1} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
@@ -50,13 +55,19 @@ else
 		feh --bg-fill ${1} ${maincolsmall}
 	else	
 		convert -size ${res} xc:'#'${maincol} ${maincollarge}
-		magick composite -gravity center ${1} ${maincollarge} ${maincolover}
+		if [[ -z ${3} ]]
+		then
+			magick composite -gravity center ${1} ${maincollarge} ${maincolover}
+		else
+			magick composite -gravity south ${1} ${maincollarge} ${maincolover}
+		fi	
 		feh --bg-fill ${maincolover} ${maincolsmall}
 	fi
 fi
 
 #echo ${1}
 #echo ${2}
+#echo ${3}
 #echo ${resw}
 #echo ${resh}
 #echo ${walname}

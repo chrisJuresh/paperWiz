@@ -30,9 +30,11 @@ Remeber to change `resw` and `resh` to your main monitors resolutions
 
 ## Usage
 
-`paperWiz /your/wallpaper` to use color4 from pywal
+`paperWiz /your/wallpaper 1` to use color4 from pywal
 
 `paperWiz /your/wallpaper 2` to use the most common colour in the image (extracted from imagemagick)
+
+`paperWiz /your/wallpaper 1 2` use color4 and push the image to the bottom of the screen (replace 1 with 2 to use the most common colour)
 
 I recommending adding this script to a bind in sxiv as such;
 
@@ -41,8 +43,9 @@ I recommending adding this script to a bind in sxiv as such;
 while read file
 do
 	case "$1" in
-		"Return") paperWiz "$file" & ;;
+		"Return") paperWiz "$file" 1 & ;;
 		"backslash") paperWiz "$file" 2 & ;;
+		"BackSpace") paperWiz "$file" 2 1 & ;;
 	esac
 done
 ```
