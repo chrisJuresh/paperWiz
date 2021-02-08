@@ -21,7 +21,7 @@ This script pulls a colour from you wallpaper and does 2 things with it,
 
 You can either run the program with ./paperWiz or put the paperWiz file in your $PATH
 
-Remeber to change resw and resh to your main monitors resolutions 
+Remeber to change `resw` and `resh` to your main monitors resolutions 
 
 ## Usage
 
