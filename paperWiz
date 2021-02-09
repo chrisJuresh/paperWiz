@@ -1,13 +1,21 @@
 #!/bin/bash
 
+############################################################
+
+# Set your resolution here
 resw=2560
 resh=1440
 res=${resw}x${resh}
 
-walname=$(basename ${1} | cut -d'.' -f1)
-
+# Cache location
 cache=$HOME/.cache/paperWiz/
 
+#############################################################
+
+# Grabs the wallpaper name to use for cached images
+walname=$(basename ${1} | cut -d'.' -f1)
+
+# Where to cache each image
 grey=${cache}/grey.png
 small=${cache}/small/${walname}small.png
 large=${cache}/large/${walname}large.png
@@ -16,6 +24,7 @@ maincolsmall=${cache}/maincolsmall/${walname}maincolsmall.png
 maincollarge=${cache}/maincollarge/${walname}maincollarge.png
 maincolover=${cache}/maincolover/${walname}maincolover.png
 
+# Sets the main wallpaper and grey as the wallpaper for the second monitor. Also refreshes programs that require it for pywal.
 {
 	feh --bg-fill ${1} ${grey}
 	wal -i ${1} -n
@@ -24,10 +33,11 @@ maincolover=${cache}/maincolover/${walname}maincolover.png
 	wal_steam.py 
 } &> /dev/null
 
+# Fetches the wallpapers resolution
 walresw=$(identify -format '%w' ${1})
 walresh=$(identify -format '%h' ${1})
 
-
+# color4
 if [[ ${2} -le "1" ]] || [[ -z ${2} ]]
 then
 	color4=$(cat ~/.cache/wal/colors.sh | grep color4 | cut -d"'" -f2)
@@ -48,6 +58,7 @@ then
 	fi
 fi
 
+# main color
 if [[ ${2} -ge "2" ]]
 then
 	maincol=$(convert ${1} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
