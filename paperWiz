@@ -1,6 +1,6 @@
 #!/bin/bash
 
-############################################################
+###############################
 
 # Set your resolution here
 resw=2560
@@ -10,10 +10,38 @@ res=${resw}x${resh}
 # Cache location
 cache=$HOME/.cache/paperWiz/
 
-#############################################################
+###############################
 
-# Grabs the wallpaper name to use for cached images
-walname=$(basename ${1} | cut -d'.' -f1)
+# Help Menu
+usage() {
+	cat <<EOF
+
+Usage:
+  paperWiz [options] <image>
+
+Description:
+  Sets your second monitors wallpapers to a single color and surrounds images with
+  a lower resolution than your monitor with a colored border
+
+Options:
+  -h, --help	Show help menu
+  -p, --pywal	Use color4 from pywal
+  -m, --magick	Use the images main color
+  -c, --center	Send the image to the center of the screen
+  -s, --south	Send the image to the bottom of the screen
+
+EOF
+}
+[[ ${1} = "-h" ]] && usage && exit 0
+# Sets the main wallpaper and grey as the wallpaper for the second monitor. Also refreshes programs that require it for pywal.
+
+[[ ${1} != "-h" ]] && {
+	feh --bg-fill ${1} ${grey}
+	wal -i ${1} -n
+	xdotool key Alt_L+F5
+	pywal-discord -t default
+	wal_steam.py 
+} &> /dev/null
 
 # Where to cache each image
 grey=${cache}/grey.png
@@ -24,14 +52,8 @@ maincolsmall=${cache}/maincolsmall/${walname}maincolsmall.png
 maincollarge=${cache}/maincollarge/${walname}maincollarge.png
 maincolover=${cache}/maincolover/${walname}maincolover.png
 
-# Sets the main wallpaper and grey as the wallpaper for the second monitor. Also refreshes programs that require it for pywal.
-{
-	feh --bg-fill ${1} ${grey}
-	wal -i ${1} -n
-	xdotool key Alt_L+F5
-	pywal-discord -t default
-	wal_steam.py 
-} &> /dev/null
+# Grabs the wallpaper name to use for cached images
+walname=$(basename ${1} | cut -d'.' -f1)
 
 # Fetches the wallpapers resolution
 walresw=$(identify -format '%w' ${1})
