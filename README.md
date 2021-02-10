@@ -1,11 +1,13 @@
 # paperWiz
+![Preview](https://imgur.com/iNTDo3D.gif)
+
 **Made for people with  HiDPI and / or Multiple Monitors.**
 
 This script pulls a colour from you wallpaper and does 2 things with it,
 
  - Sets your second monitor as said colour.  -> You no longer have to look for a matching wallpaper / have the same one for both / tile the wallpaper across and have parts of it cut
  - Surrounds the wallpaper in said colour if the image is lower than your monitors resolution. -> You no longer have to worry about wallpapers being too low resolution for you monitor, and can also use vertical wallpapers.
- 
+
 **For vertical wallpapers you may want to downsize them with,**
  
 `convert yourimage.png  -resize 600x1067\>  shrunk.png`
