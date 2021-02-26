@@ -3,6 +3,8 @@
 cache=$HOME/.cache/paperWiz
 
 mkdir ${cache}
+mkdir ${cache}/wall
+mkdir ${cache}/smallwall
 mkdir ${cache}/small
 mkdir ${cache}/large
 mkdir ${cache}/over
