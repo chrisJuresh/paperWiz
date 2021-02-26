@@ -28,7 +28,9 @@ to ensure that they are centered rather than touching the top and bottom of your
 
 You can either run the program with ./paperWiz or put the paperWiz file in your $PATH
 
-Remeber to change `resw` and `resh` to your main monitors resolutions 
+Remeber to change `resw` and `resh` to your main monitors resolutions.
+
+Set your `smallwallres` to the vertical resolution you would like your wallpapers to be shrunk to (if you specify it). I recommend doing [ Vertical resolution of your main monitor / 9 x 7 ]
 
 ## Usage
 
@@ -38,6 +40,8 @@ Remeber to change `resw` and `resh` to your main monitors resolutions
 
 `paperWiz /your/wallpaper 1 2` use color4 and push the image to the bottom of the screen (replace 1 with 2 to use the most common colour)
 
+`paperWiz /your/wallpaper 1 1 1` to use color 4 from pywal and shrink the image to a vertical resolution of 1120 (replace the first two 1's to use the most common color and to send the image to the bottom of the screen respectively)
+
 I recommending adding this script to a bind in sxiv as such;
 
 ```
@@ -45,9 +49,11 @@ I recommending adding this script to a bind in sxiv as such;
 while read file
 do
 	case "$1" in
-		"Return") paperWiz "$file" 1 & ;;
-		"backslash") paperWiz "$file" 2 & ;;
-		"BackSpace") paperWiz "$file" 2 1 & ;;
+		"equal") paperWiz "$file" 1 & ;;
+		"minus") paperWiz "$file" 1 1 1 & ;;
+		"0") paperWiz "$file" 2 & ;;
+		"9") paperWiz "$file" 2 1 1 & ;;
+		"8") paperWiz "$file" 2 2 & ;;
 	esac
 done
 ```
