@@ -62,10 +62,10 @@ while getopts ":w:p:c::sh" opt; do
     s)
       shrink_res=1
       ;;
-	h)
-	  print_help
-	  exit 0
-	  ;;
+    h)
+      print_help
+      exit 0
+      ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
