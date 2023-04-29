@@ -37,15 +37,15 @@ Set your `smallwallres` to the vertical resolution you would like your wallpaper
 Description:
   `paperWiz` is a script to set a wallpaper on two monitors. The first monitor is set with the chosen wallpaper and the second monitor is set with either the main color of the wallpaper or a color chosen from pyWal's cache.
 
-  * `-w, --wallpaper`: The path to the wallpaper you want to set. This option is required.
+  * `-w`: The path to the **w**allpaper you want to set. This option is required.
   
-  * `-p, --position`: Set the position of the wallpaper on the main monitor. Options: 1 for center (default), 2 for south.
+  * `-p`: Set the **p**osition of the wallpaper on the main monitor. Options: 1 for center (default), 2 for south.
   
-  * `-c, --color`: Set the color for the second monitor. Options: 0-15 for color0-color15 from pywal, -1 for main color from wallpaper (default).
+  * `-c`: Set the **c**olor for the second monitor. Options: 0-15 for color0-color15 from pywal, -1 for main color from wallpaper (default).
 
-  * `-s, --shrink`: Shrink the wallpaper.
+  * `-s`: **S**hrink the wallpaper.
   
-  * `-h, --help`: Display this help menu and exit.
+  * `-h`: Display this **h**elp menu and exit.
 
 Example:
   ./paperWiz -w /path/to/wallpaper.jpg -p 1 -c 1 -s
