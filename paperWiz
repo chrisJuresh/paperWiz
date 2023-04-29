@@ -3,7 +3,7 @@
 # Set your resolution here
 resw=2560
 resh=1440
-smallwallres=1120
+smallwallres=1080
 
 ###########################
 
@@ -19,7 +19,7 @@ wall=${cache}/wall.png
 smallwall=${cache}/smallwall.png
 # Placeholder
 grey=${cache}/grey.png
-# Color4
+# pyWal Color
 small=${cache}/small.png
 large=${cache}/large.png
 over=${cache}/over.png
@@ -28,70 +28,123 @@ maincolsmall=${cache}/maincolsmall.png
 maincollarge=${cache}/maincollarge.png
 maincolover=${cache}/maincolover.png
 
-# Help Menu
-#help() {
-#	cat <<EOF
-#
-#Usage:
-#  paperWiz [options] <image>
-#
-#Description:
-#  Sets your second monitors wallpapers to a single color and surrounds images with
-#  a lower resolution than your monitor with a colored border
-#
-#Options:
-#  -h, --help	Show help menu
-#  -p, --pywal	Use color4 from pywal
-#  -m, --magick	Use the images main color
-#  -c, --center	Send the image to the center of the screen
-#  -s, --south	Send the image to the bottom of the screen
-#
-#EOF
-#}
-#[[ ${1} = "-h" ]] && help && exit 0
+# Help menu function
+print_help() {
+  cat << EOF
+Usage: $(basename $0) [OPTIONS]
+
+Options:
+  -w WALLPAPER_PATH   Path to the wallpaper you want to set
+  -p POSITION         Set the position of the wallpaper on the main monitor (1: center, 2: south)
+  -c [WALCOLOR]       Set the color for the second monitor (1: color4 from pywal, -1: main color from wallpaper)
+  -s                  Shrink the wallpaper's vertical resolution to ${smallwallres}
+  -h, --help          Display this help menu and exit
+
+Example:
+  ./$(basename $0) -w /path/to/wallpaper.jpg -p 1 -c 1 -s
+EOF
+}
+
+# Default to main color
+walColor=-1
+
+while getopts ":w:p:c::sh" opt; do
+  case $opt in
+    w)
+      wallpaper="$OPTARG"
+      ;;
+    p)
+      position="$OPTARG"
+      ;;
+    c)
+      walColor="$OPTARG"
+      ;;
+    s)
+      shrink_res=1
+      ;;
+	h)
+	  print_help
+	  exit 0
+	  ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+shift $((OPTIND - 1))
+
+# Check if there are extra arguments
+if [ "$#" -gt 0 ]; then
+  echo "Error: Extra arguments detected. Please only use valid flags and their respective values." >&2
+  exit 1
+fi
+
+# Check if the wallpaper variable is set
+if [[ -z "${wallpaper}" ]]; then
+  echo "Error: The -w flag is required to specify the wallpaper path." >&2
+  exit 1
+fi
+
+# Check if the color specified is in the right range
+if (( ${walColor} <= -2 || ${walColor} >= 15 )); then
+  echo "Error: The color specified must be between 0 and 15" >&2
+  exit 1
+fi
 
 # Sets the main wallpaper and grey as the wallpaper for the second monitor. Also refreshes programs that require it for pywal.
 {
-	feh --bg-fill ${1} ${grey}
-	wal -i ${1} -n
-	xdotool key Alt_L+F5
-	pywal-discord -t default
-	wal_steam.py 
-	telegram-palette-gen --wal
+#wpg -a "${wallpaper}"
+#wpg -s ${wallpaper##*/}
+#
+feh --bg-fill "${wallpaper}" ${grey}
+wal -i "${wallpaper}" -n
+#
+#xdotool key Alt_L+F5
+#pywal-discord -p ~/clone/powercord/src/Powercord/themes/Pywal-Discord
+#wal_steam.py 
+#telegram-palette-gen --wal
+#spicetify update
+#waldunst
+#dunst &
 } &> /dev/null
 
-# Resizes the image 
-# If main color is requested shrink the wallpaper for faster histogram analysis
-[[ ${2} -ge "2" ]] && convert ${1} -resize 500x500\> ${smallwall}
-# If 1 is specified, shrink the wallpaper to a vertical resolution of 1120, otherwise copy the fullsize wallpaper to the cache.
-[[ ${4} -ge "1" ]] && convert ${1} -resize 2560x${smallwallres}\> ${wall} || cp ${1} ${wall}
+# If shrinking is specified, shrink the wallpaper to a vertical resolution of ${smallwallres}, otherwise copy the fullsize wallpaper to the cache.
+if [[ ${shrink_res} == "1" ]]; then
+  convert "${wallpaper}" -resize 2560x${smallwallres}\> ${wall}
+else
+  cp "${wallpaper}" ${wall}
+fi
 
 # Fetches the wallpapers resolution
-walresw=$(identify -format '%w' ${wall})
-walresh=$(identify -format '%h' ${wall})
+wallresW=$(identify -format '%w' ${wall})
+wallresH=$(identify -format '%h' ${wall})
 
-#Functions
-#overlay=$(magick composite -gravity center ${wall} ${large} ${over})
+# pyWal Color
 
-# Color4
-if [[ ${2} -le "1" ]] || [[ -z ${2} ]]
+if [[ ${walColor} != "-1" ]]
 then
 	# Fetch color4
-	color4=$(cat ~/.cache/wal/colors.sh | grep color4 | cut -d"'" -f2)
-	# Create a small image of color4 to use on the second monitor
-	convert -size 2x2 xc:${color4} ${small}
-	# Apply the small image of color4 to the second monitor
+	walColorHex=$(cat ~/.cache/wal/colors.sh | grep color${walColor} | cut -d"'" -f2)
+	# Create a small image of the color to use on the second monitor
+	convert -size 2x2 xc:${walColorHex} ${small}
+	# Apply the small image of the color to the second monitor
 	feh --bg-fill ${small}
 	# Check if the wallpaper is larger than the monitor
-	if [[ ${walresw} -ge ${resw} ]] && [[ ${walresh} -ge ${resh} ]]
+	if [[ ${wallresW} -ge ${resw} ]] && [[ ${wallresH} -ge ${resh} ]]
 	then
 		# Fill the main monitor with the wallpaper
 		feh --bg-fill ${wall} ${small}
 	else	
 		# Create an image matching the size of the main monitor with color4
-		convert -size ${res} xc:${color4} ${large}
+		convert -size ${res} xc:${walColorHex} ${large}
 		# If option 3 is 1 or empty 
-		if [[ ${3} -le "1" ]] || [[ -z ${3} ]]
+    		if [[ ${position} == "1" ]] || [[ -z ${position} ]]
 		then
 			# Apply the wallpaper to the center of the large image of color4
 			magick composite -type TrueColor -gravity center ${wall} ${large} ${over}
@@ -105,8 +158,10 @@ then
 fi
 
 # Main Color
-if [[ ${2} -ge "2" ]]
+if [[ ${walColor} == "-1" ]]
 then
+	#Shrink the wallpaper for faster histogram analysis
+  	convert "${wallpaper}" -resize 500x500\> ${smallwall}
 	# Fetch the main color in the wallpaper
 	maincol=$(convert ${smallwall} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
 	# Create a small image of the main color to use on the second monitor
@@ -114,7 +169,7 @@ then
 	# Apply the main color to the second monitor
 	feh --bg-fill ${maincolsmall}
 	# Check if the wallpaper is larger than the monitor
-	if [[ ${walresw} -ge ${resw} ]] && [[ ${walresh} -ge ${resh} ]]
+	if [[ ${wallresW} -ge ${resw} ]] && [[ ${wallresH} -ge ${resh} ]]
 	then
 		# Fill the main monitor with the wallpaper
 		feh --bg-fill ${wall} ${maincolsmall}
@@ -122,7 +177,7 @@ then
 		# Create an image matching the size of the main monitor with the main color
 		convert -size ${res} xc:'#'${maincol} ${maincollarge}
 		# If option 3 is 1 or empty
-		if [[ ${3} -le "1" ]] || [[ -z ${3} ]]
+    		if [[ ${position} == "1" ]] || [[ -z ${position} ]]
 		then
 			# Apply the wallpaper to the center of the large image of the main color
 			magick composite -type TrueColor -gravity center ${wall} ${maincollarge} ${maincolover}
@@ -135,14 +190,4 @@ then
 	fi
 fi
 
-#echo 1       = ${1}
-#echo 2       = ${2}
-#echo 3       = ${3}
-#echo resw    = ${resw}
-#echo resh    = ${resh}
-#echo walname = ${walname}
-#echo cache   = ${cache}
-#echo walresw = ${walresw}
-#echo walresh = ${walresh}
-#echo color4  = ${color4}
-#echo maincol = ${maincol}
+notify-send "paperWiz" "Wallpaper set"

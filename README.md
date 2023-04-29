@@ -34,13 +34,30 @@ Set your `smallwallres` to the vertical resolution you would like your wallpaper
 
 ## Usage
 
-`paperWiz /your/wallpaper 1` to use color4 from pywal
+Usage: paperWiz [OPTIONS]
 
-`paperWiz /your/wallpaper 2` to use the most common colour in the image (extracted from imagemagick)
+Options:
+  -w WALLPAPER_PATH   Path to the wallpaper you want to set
+  -p POSITION         Set the position of the wallpaper on the main monitor (1: center, 2: south)
+  -c [WALCOLOR]       Set the color for the second monitor (1: color4 from pywal, -1: main color from wallpaper)
+  -s                  Shrink the wallpaper's vertical resolution to ${smallwallres}
+  -h, --help          Display this help menu and exit
 
-`paperWiz /your/wallpaper 1 2` use color4 and push the image to the bottom of the screen (replace 1 with 2 to use the most common colour)
+Example:
+  ./paperWiz -w /path/to/wallpaper.jpg -p 1 -c 1 -s
 
-`paperWiz /your/wallpaper 1 1 1` to use color 4 from pywal and shrink the image to a vertical resolution of 1120 (replace the first two 1's to use the most common color and to send the image to the bottom of the screen respectively)
+Description:
+  `paperWiz` is a script to set a wallpaper on two monitors. The first monitor is set with the chosen wallpaper and the second monitor is set with either the main color of the wallpaper or a color chosen from pyWal's cache.
+
+  * `-w, --wallpaper`: The path to the wallpaper you want to set. This option is required.
+  
+  * `-p, --position`: Set the position of the wallpaper on the main monitor. Options: 1 for center (default), 2 for south.
+  
+  * `-c, --color`: Set the color for the second monitor. Options: 1 for color4 from pywal, -1 for main color from wallpaper (default).
+  
+  * `-s, --shrink`: Shrink the wallpaper.
+  
+  * `-h, --help`: Display this help menu and exit.
 
 I recommending adding this script to a bind in sxiv as such;
 
@@ -49,18 +66,19 @@ I recommending adding this script to a bind in sxiv as such;
 while read file
 do
 	case "$1" in
-		"equal") paperWiz "$file" 1 & ;;
-		"minus") paperWiz "$file" 1 1 1 & ;;
-		"0") paperWiz "$file" 2 & ;;
-		"9") paperWiz "$file" 2 1 1 & ;;
-		"8") paperWiz "$file" 2 2 & ;;
+		"equal") paperWiz -w "$file" -c 4 & ;;
+		"minus") paperWiz -w "$file" -c 4 -s & ;;
+		"0") paperWiz -w "$file" & ;;
+		"9") paperWiz -w "$file" -s & ;;
+		"8") paperWiz -w "$file" -p 2 & ;;
 	esac
 done
 ```
-
 
 ## Dependencies
 
 pywal (for color4)
 
 imagemagick (for both)
+
+feh (for setting your wallpaper)
