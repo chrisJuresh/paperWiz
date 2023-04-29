@@ -41,8 +41,8 @@ Description:
   
   * `-p, --position`: Set the position of the wallpaper on the main monitor. Options: 1 for center (default), 2 for south.
   
-  * `-c, --color`: Set the color for the second monitor. Options: 1 for color4 from pywal, -1 for main color from wallpaper (default).
-  
+  * `-c, --color`: Set the color for the second monitor. Options: 0-15 for color0-color15 from pywal, -1 for main color from wallpaper (default).
+
   * `-s, --shrink`: Shrink the wallpaper.
   
   * `-h, --help`: Display this help menu and exit.
