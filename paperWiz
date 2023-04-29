@@ -118,13 +118,9 @@ fi
 wallresW=$(identify -format '%w' ${wall})
 wallresH=$(identify -format '%h' ${wall})
 
-# pyWal Color
-if [[ ${walColor} != "-1" ]]
-then
-	# Fetch color
-	walColorHex=$(cat ~/.cache/wal/colors.sh | grep color${walColor} | cut -d"'" -f2)
+processWallpaper(){
 	# Small image for second monitor
-	convert -size 2x2 xc:${walColorHex} ${smallColorImg}
+	convert -size 2x2 xc:${wallHex} ${smallColorImg}
 	feh --bg-fill ${smallColorImg}
 	# Check if the wallpaper is larger than the monitor
 	if [[ ${wallresW} -ge ${resW} ]] && [[ ${wallresH} -ge ${resH} ]]
@@ -133,11 +129,19 @@ then
 		feh --bg-fill ${wall} ${smallColorImg}
 	else	
 		# Create an color image matching the size of the main monitor
-		convert -size ${res} xc:${walColorHex} ${largeColorImg}
+		convert -size ${res} xc:${wallHex} ${largeColorImg}
 		# Apply the wallpaper on top of the color image in the position specified
 		magick composite -type TrueColor -gravity ${position} ${wall} ${largeColorImg} ${overlayedImg}
 		feh --bg-fill ${overlayedImg} ${smallColorImg}
 	fi
+}
+
+# pyWal Color
+if [[ ${walColor} != "-1" ]]
+then
+	# Fetch color
+	wallHex=$(cat ~/.cache/wal/colors.sh | grep color${walColor} | cut -d"'" -f2)
+	processWallpaper
 fi
 
 # Main Color
@@ -146,23 +150,10 @@ then
 	# Shrink the wallpaper for faster histogram analysis
 	convert "${wallpaper}" -resize 500x500\> ${compressedWall}
 	# Fetch the main color in the wallpaper
-	mainCol=$(convert ${compressedWall} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
-	# Small image for second monitor
-	convert -size 2x2 xc:\#${mainCol} ${smallColorImg}
-		feh --bg-fill ${smallColorImg}
-			# Check if the wallpaper is larger than the monitor
-			if [[ ${wallresW} -ge ${resW} ]] && [[ ${wallresH} -ge ${resH} ]]
-			then
-				# Use default wallpaper
-				feh --bg-fill ${wall} ${smallColorImg}
-			else	
-				# Create an color image matching the size of the main monitor
-				convert -size ${res} xc:'#'${mainCol} ${largeColorImg}
-				# Apply the wallpaper on top of the color image in the position specified
-				magick composite -type TrueColor -gravity ${position} ${wall} ${largeColorImg} ${overlayedImg}
-				feh --bg-fill ${overlayedImg} ${smallColorImg}
-			fi
+	wallHex=#$(convert ${compressedWall} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
+	processWallpaper
 fi
+
 
 # Send notification
 notify-send "paperWiz" "Wallpaper set"
