@@ -84,7 +84,7 @@ esac
 # Set wallpaper and theme programs
 {
 	wpg -a "${wallpaper}"
-	wpg -s ${wallpaper##*/}
+	wpg -s ${wallpaper##*/} -n
 	wal -i "${wallpaper}" -n
 	xdotool key Alt_L+F5
 	telegram-palette-gen --wal
