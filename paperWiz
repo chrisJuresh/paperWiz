@@ -99,19 +99,19 @@ fi
 
 # Sets the main wallpaper and grey as the wallpaper for the second monitor. Also refreshes programs that require it for pywal.
 {
-#wpg -a "${wallpaper}"
-#wpg -s ${wallpaper##*/}
-#
+wpg -a "${wallpaper}"
+wpg -s ${wallpaper##*/}
+
 feh --bg-fill "${wallpaper}" ${grey}
 wal -i "${wallpaper}" -n
-#
-#xdotool key Alt_L+F5
-#pywal-discord -p ~/clone/powercord/src/Powercord/themes/Pywal-Discord
-#wal_steam.py 
-#telegram-palette-gen --wal
-#spicetify update
-#waldunst
-#dunst &
+
+xdotool key Alt_L+F5
+pywal-discord -p ~/clone/powercord/src/Powercord/themes/Pywal-Discord
+wal_steam.py 
+telegram-palette-gen --wal
+spicetify update
+waldunst
+dunst &
 } &> /dev/null
 
 # If shrinking is specified, shrink the wallpaper to a vertical resolution of ${smallwallres}, otherwise copy the fullsize wallpaper to the cache.
