@@ -1,36 +1,30 @@
 #!/bin/bash
 
-# Set your resolution here
-resw=2560
-resh=1440
+# Set your desired resolution here
+resW=2560
+resH=1440
 smallwallres=1080
 
 ###########################
 
 # Combine resolutions
-res=${resw}x${resh}
+res=${resW}x${resH}
 
-#Cache location
 cache=$HOME/.cache/paperWiz
 
-# Where to cache each image
 # Wallpaper
-wall=${cache}/wall.png
-smallwall=${cache}/smallwall.png
+# Compressed image for histogram
+compressedWall=${cache}/compressedWall.png
 # Placeholder
 grey=${cache}/grey.png
-# pyWal Color
-small=${cache}/small.png
-large=${cache}/large.png
-over=${cache}/over.png
-# Main Color
-maincolsmall=${cache}/maincolsmall.png
-maincollarge=${cache}/maincollarge.png
-maincolover=${cache}/maincolover.png
+# Colored Images
+smallColorImg=${cache}/smallColorImg.png
+largeColorImg=${cache}/largeColorImg.png
+overlayedImg=${cache}/overlayedImg.png
 
-# Help menu function
+# Help menu
 print_help() {
-  cat << EOF
+	cat << EOF
 Usage: $(basename $0) [OPTIONS]
 
 Options:
@@ -45,148 +39,123 @@ Example:
 EOF
 }
 
-# Defaults to main color
+# Defaults
 walColor="-1"
 position="c"
 
+# Arguments
 while getopts ":w:p:c::sh" opt; do
-  case $opt in
-    w)
-      wallpaper="$OPTARG"
-      ;;
-    p)
-      position="$OPTARG"
-      ;;
-    c)
-      walColor="$OPTARG"
-      ;;
-    s)
-      shrink_res=1
-      ;;
-    h)
-      print_help
-      exit 0
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      exit 1
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      exit 1
-      ;;
-  esac
+	case $opt in
+		w) wallpaper="$OPTARG" ;;
+		p) position="$OPTARG" ;;
+		c) walColor="$OPTARG" ;;
+		s) shrink_res=1 ;;
+		h) print_help; exit 0 ;;
+		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+		:) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
+	esac
 done
 
 shift $((OPTIND - 1))
 
 # Check if there are extra arguments
 if [ "$#" -gt 0 ]; then
-  echo "Error: Extra arguments detected. Please only use valid flags and their respective values." >&2
-  exit 1
+	echo "Error: Extra arguments detected. Please only use valid flags and their respective values." >&2
+	exit 1
 fi
 
 # Check if the wallpaper variable is set
 if [[ -z "${wallpaper}" ]]; then
-  echo "Error: The -w flag is required to specify the wallpaper path." >&2
-  exit 1
+	echo "Error: The -w flag is required to specify the wallpaper path." >&2
+	exit 1
 fi
 
 # Check if the color specified is in the right range
-if (( ${walColor} <= -2 || ${walColor} >= 15 )); then
-  echo "Error: The color specified must be between 0 and 15" >&2
-  exit 1
+if (( ${walColor} < -1 || ${walColor} > 15 )); then
+	echo "Error: The color specified must be between -1 and 15" >&2
+	exit 1
 fi
 
 # Set and check the position variable
-if [ "$position" == "c" ]; then
-    position="center"
-elif [ "$position" == "n" ]; then
-    position="north"
-elif [ "$position" == "s" ]; then
-    position="south"
-elif [ "$position" == "e" ]; then
-    position="east"
-elif [ "$position" == "w" ]; then
-    position="west"
-else
+position_map=(["c"]="center" ["n"]="north" ["s"]="south" ["w"]="west" ["e"]="east")
+position=${position_map[${position}]:-}
+if [ -z "$position" ]; then
 	echo "Error: The position specified must be c, s, n, w, or e" >&2
 	exit 1
 fi
 
-# Sets the main wallpaper and grey as the wallpaper for the second monitor. Also refreshes programs that require it for pywal.
+# Set wallpaper and theme programs
 {
-wpg -a "${wallpaper}"
-wpg -s ${wallpaper##*/}
+	wpg -a "${wallpaper}"
+	wpg -s ${wallpaper##*/}
 
-feh --bg-fill "${wallpaper}" ${grey}
-wal -i "${wallpaper}" -n
+	feh --bg-fill "${wallpaper}" ${grey}
+	wal -i "${wallpaper}" -n
 
-xdotool key Alt_L+F5
-telegram-palette-gen --wal
+	xdotool key Alt_L+F5
+	telegram-palette-gen --wal
 
-waldunst
-dunst &
+	waldunst
+	dunst &
 } &> /dev/null
 
-# If shrinking is specified, shrink the wallpaper to a vertical resolution of ${smallwallres}, otherwise copy the fullsize wallpaper to the cache.
+# Shrink wallpaper, or copy wallpaper to cache
+wall=${cache}/wall.png
 if [[ ${shrink_res} == "1" ]]; then
-  convert "${wallpaper}" -resize 2560x${smallwallres}\> ${wall}
+	convert "${wallpaper}" -resize 2560x${smallwallres}\> ${wall}
 else
-  cp "${wallpaper}" ${wall}
+	cp "${wallpaper}" ${wall}
 fi
 
-# Fetches the wallpapers resolution
+# Fetch wallpaper resolution
 wallresW=$(identify -format '%w' ${wall})
 wallresH=$(identify -format '%h' ${wall})
 
 # pyWal Color
-
 if [[ ${walColor} != "-1" ]]
 then
-	# Fetch color4
+	# Fetch color
 	walColorHex=$(cat ~/.cache/wal/colors.sh | grep color${walColor} | cut -d"'" -f2)
-	# Create a small image of the color to use on the second monitor
-	convert -size 2x2 xc:${walColorHex} ${small}
-	# Apply the small image of the color to the second monitor
-	feh --bg-fill ${small}
+	# Small image for second monitor
+	convert -size 2x2 xc:${walColorHex} ${smallColorImg}
+	feh --bg-fill ${smallColorImg}
 	# Check if the wallpaper is larger than the monitor
-	if [[ ${wallresW} -ge ${resw} ]] && [[ ${wallresH} -ge ${resh} ]]
+	if [[ ${wallresW} -ge ${resW} ]] && [[ ${wallresH} -ge ${resH} ]]
 	then
-		# Fill the main monitor with the wallpaper
-		feh --bg-fill ${wall} ${small}
+		# Use default wallpaper
+		feh --bg-fill ${wall} ${smallColorImg}
 	else	
-		# Create an image matching the size of the main monitor with color4
-		convert -size ${res} xc:${walColorHex} ${large}
-		magick composite -type TrueColor -gravity ${position} ${wall} ${large} ${over}
-		# Apply the overlayed wallpaper and the small image of color4
-		feh --bg-fill ${over} ${small}
+		# Create an color image matching the size of the main monitor
+		convert -size ${res} xc:${walColorHex} ${largeColorImg}
+		# Apply the wallpaper on top of the color image in the position specified
+		magick composite -type TrueColor -gravity ${position} ${wall} ${largeColorImg} ${overlayedImg}
+		feh --bg-fill ${overlayedImg} ${smallColorImg}
 	fi
 fi
 
 # Main Color
 if [[ ${walColor} == "-1" ]]
 then
-	#Shrink the wallpaper for faster histogram analysis
-  	convert "${wallpaper}" -resize 500x500\> ${smallwall}
+	# Shrink the wallpaper for faster histogram analysis
+	convert "${wallpaper}" -resize 500x500\> ${compressedWall}
 	# Fetch the main color in the wallpaper
-	maincol=$(convert ${smallwall} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
-	# Create a small image of the main color to use on the second monitor
-	convert -size 2x2 xc:\#${maincol} ${maincolsmall}
-	# Apply the main color to the second monitor
-	feh --bg-fill ${maincolsmall}
-	# Check if the wallpaper is larger than the monitor
-	if [[ ${wallresW} -ge ${resw} ]] && [[ ${wallresH} -ge ${resh} ]]
-	then
-		# Fill the main monitor with the wallpaper
-		feh --bg-fill ${wall} ${maincolsmall}
-	else	
-		# Create an image matching the size of the main monitor with the main color
-		convert -size ${res} xc:'#'${maincol} ${maincollarge}
-		magick composite -type TrueColor -gravity ${position} ${wall} ${large} ${over}
-		# Apply the overlayed wallpaper and the small image of the main color
-		feh --bg-fill ${maincolover} ${maincolsmall}
-	fi
+	mainCol=$(convert ${compressedWall} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
+	# Small image for second monitor
+	convert -size 2x2 xc:\#${mainCol} ${smallColorImg}
+		feh --bg-fill ${smallColorImg}
+			# Check if the wallpaper is larger than the monitor
+			if [[ ${wallresW} -ge ${resW} ]] && [[ ${wallresH} -ge ${resH} ]]
+			then
+				# Use default wallpaper
+				feh --bg-fill ${wall} ${smallColorImg}
+			else	
+				# Create an color image matching the size of the main monitor
+				convert -size ${res} xc:'#'${mainCol} ${largeColorImg}
+				# Apply the wallpaper on top of the color image in the position specified
+				magick composite -type TrueColor -gravity ${position} ${wall} ${largeColorImg} ${overlayedImg}
+				feh --bg-fill ${overlayedImg} ${smallColorImg}
+			fi
 fi
 
+# Send notification
 notify-send "paperWiz" "Wallpaper set"
