@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Set your desired resolution here
 resW=2560
 resH=1440
@@ -83,8 +85,6 @@ esac
 {
 	wpg -a "${wallpaper}"
 	wpg -s ${wallpaper##*/}
-	grey=${cache}/grey.png
-	feh --bg-fill "${wallpaper}" ${grey}
 	wal -i "${wallpaper}" -n
 	xdotool key Alt_L+F5
 	telegram-palette-gen --wal
