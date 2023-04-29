@@ -158,15 +158,7 @@ then
 	else	
 		# Create an image matching the size of the main monitor with color4
 		convert -size ${res} xc:${walColorHex} ${large}
-		# If option 3 is 1 or empty 
-    		if [[ ${position} == "1" ]] || [[ -z ${position} ]]
-		then
-			# Apply the wallpaper to the center of the large image of color4
-			magick composite -type TrueColor -gravity center ${wall} ${large} ${over}
-		else
-			# Apply the wallpaper to the south of the large image of color4
-			magick composite -type TrueColor -gravity south ${wall} ${large} ${over}
-		fi
+		magick composite -type TrueColor -gravity ${position} ${wall} ${large} ${over}
 		# Apply the overlayed wallpaper and the small image of color4
 		feh --bg-fill ${over} ${small}
 	fi
@@ -191,15 +183,7 @@ then
 	else	
 		# Create an image matching the size of the main monitor with the main color
 		convert -size ${res} xc:'#'${maincol} ${maincollarge}
-		# If option 3 is 1 or empty
-    		if [[ ${position} == "1" ]] || [[ -z ${position} ]]
-		then
-			# Apply the wallpaper to the center of the large image of the main color
-			magick composite -type TrueColor -gravity center ${wall} ${maincollarge} ${maincolover}
-		else
-			# Apply the wallpaper to the south of the large image of the main color
-			magick composite -type TrueColor -gravity south ${wall} ${maincollarge} ${maincolover}
-		fi	
+		magick composite -type TrueColor -gravity ${position} ${wall} ${large} ${over}
 		# Apply the overlayed wallpaper and the small image of the main color
 		feh --bg-fill ${maincolover} ${maincolsmall}
 	fi
