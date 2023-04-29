@@ -1,7 +1,4 @@
 #!/bin/bash
 
 cache=$HOME/.cache/paperWiz
-
 mkdir ${cache}
-
-convert -size 2x2 xc:#121212 $HOME/.cache/paperWiz/grey.png 
