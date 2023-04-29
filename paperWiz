@@ -35,18 +35,19 @@ Usage: $(basename $0) [OPTIONS]
 
 Options:
   -w WALLPAPER_PATH   Path to the wallpaper you want to set
-  -p POSITION         Set the position of the wallpaper on the main monitor (1: center (default), 2: south)
+  -p POSITION         Set the position of the wallpaper on the main monitor (c: center (default), s: south, n: north, w: west,e: east)
   -c [WALCOLOR]       Set the color for the second monitor (0-15: color0-color15 from pywal, -1: main color from wallpaper (default))
   -s                  Shrink the wallpaper's vertical resolution to ${smallwallres}
   -h, --help          Display this help menu and exit
 
 Example:
-  ./$(basename $0) -w /path/to/wallpaper.jpg -p 1 -c 1 -s
+  ./$(basename $0) -w /path/to/wallpaper.jpg -p s -c 0 -s
 EOF
 }
 
-# Default to main color
-walColor=-1
+# Defaults to main color
+walColor="-1"
+position="c"
 
 while getopts ":w:p:c::sh" opt; do
   case $opt in
@@ -97,6 +98,22 @@ if (( ${walColor} <= -2 || ${walColor} >= 15 )); then
   exit 1
 fi
 
+# Set and check the position variable
+if [ "$position" == "c" ]; then
+    position="center"
+elif [ "$position" == "n" ]; then
+    position="north"
+elif [ "$position" == "s" ]; then
+    position="south"
+elif [ "$position" == "e" ]; then
+    position="east"
+elif [ "$position" == "w" ]; then
+    position="west"
+else
+	echo "Error: The position specified must be c, s, n, w, or e" >&2
+	exit 1
+fi
+
 # Sets the main wallpaper and grey as the wallpaper for the second monitor. Also refreshes programs that require it for pywal.
 {
 wpg -a "${wallpaper}"
@@ -107,6 +124,7 @@ wal -i "${wallpaper}" -n
 
 xdotool key Alt_L+F5
 telegram-palette-gen --wal
+
 waldunst
 dunst &
 } &> /dev/null
