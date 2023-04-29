@@ -39,7 +39,7 @@ Description:
 
   * `-w`: The path to the **w**allpaper you want to set. This option is required.
   
-  * `-p`: Set the **p**osition of the wallpaper on the main monitor. Options: 1 for center (default), 2 for south.
+  * `-p`: Set the **p**osition of the wallpaper on the main monitor (c: center (default), s: south, n: north, w: west,e: east)
   
   * `-c`: Set the **c**olor for the second monitor. Options: 0-15 for color0-color15 from pywal, -1 for main color from wallpaper (default).
 
@@ -48,7 +48,7 @@ Description:
   * `-h`: Display this **h**elp menu and exit.
 
 Example:
-  ./paperWiz -w /path/to/wallpaper.jpg -p 1 -c 1 -s
+  ./paperWiz -w /path/to/wallpaper.jpg -p s -c 0 -s
 
 I recommending adding this script to a bind in sxiv as such;
 
@@ -61,15 +61,15 @@ do
 		"minus") paperWiz -w "$file" -c 4 -s & ;;
 		"0") paperWiz -w "$file" & ;;
 		"9") paperWiz -w "$file" -s & ;;
-		"8") paperWiz -w "$file" -p 2 & ;;
+		"8") paperWiz -w "$file" -p s & ;;
 	esac
 done
 ```
 
 ## Dependencies
 
-pywal (for color4)
+pywal (for pywal colors)
 
-imagemagick (for both)
+imagemagick 
 
-feh (for setting your wallpaper)
+feh 
