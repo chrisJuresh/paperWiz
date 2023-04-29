@@ -34,18 +34,6 @@ Set your `smallwallres` to the vertical resolution you would like your wallpaper
 
 ## Usage
 
-Usage: paperWiz [OPTIONS]
-
-Options:
-  -w WALLPAPER_PATH   Path to the wallpaper you want to set
-  -p POSITION         Set the position of the wallpaper on the main monitor (1: center, 2: south)
-  -c [WALCOLOR]       Set the color for the second monitor (1: color4 from pywal, -1: main color from wallpaper)
-  -s                  Shrink the wallpaper's vertical resolution to ${smallwallres}
-  -h, --help          Display this help menu and exit
-
-Example:
-  ./paperWiz -w /path/to/wallpaper.jpg -p 1 -c 1 -s
-
 Description:
   `paperWiz` is a script to set a wallpaper on two monitors. The first monitor is set with the chosen wallpaper and the second monitor is set with either the main color of the wallpaper or a color chosen from pyWal's cache.
 
@@ -58,6 +46,9 @@ Description:
   * `-s, --shrink`: Shrink the wallpaper.
   
   * `-h, --help`: Display this help menu and exit.
+
+Example:
+  ./paperWiz -w /path/to/wallpaper.jpg -p 1 -c 1 -s
 
 I recommending adding this script to a bind in sxiv as such;
 
