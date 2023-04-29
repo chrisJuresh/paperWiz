@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 # Set your desired resolution here
 resW=2560
 resH=1440
@@ -13,16 +11,6 @@ smallwallres=1080
 res=${resW}x${resH}
 
 cache=$HOME/.cache/paperWiz
-
-# Wallpaper
-# Compressed image for histogram
-compressedWall=${cache}/compressedWall.png
-# Placeholder
-grey=${cache}/grey.png
-# Colored Images
-smallColorImg=${cache}/smallColorImg.png
-largeColorImg=${cache}/largeColorImg.png
-overlayedImg=${cache}/overlayedImg.png
 
 # Help menu
 print_help() {
@@ -95,13 +83,11 @@ esac
 {
 	wpg -a "${wallpaper}"
 	wpg -s ${wallpaper##*/}
-
+	grey=${cache}/grey.png
 	feh --bg-fill "${wallpaper}" ${grey}
 	wal -i "${wallpaper}" -n
-
 	xdotool key Alt_L+F5
 	telegram-palette-gen --wal
-
 	waldunst
 	dunst &
 } &> /dev/null
@@ -114,15 +100,20 @@ else
 	cp "${wallpaper}" ${wall}
 fi
 
-# Fetch wallpaper resolution
-wallresW=$(identify -format '%w' ${wall})
-wallresH=$(identify -format '%h' ${wall})
-
 processWallpaper(){
+	
+	smallColorImg=${cache}/smallColorImg.png
+	largeColorImg=${cache}/largeColorImg.png
+	overlayedImg=${cache}/overlayedImg.png
+	
 	# Small image for second monitor
 	convert -size 2x2 xc:${wallHex} ${smallColorImg}
 	feh --bg-fill ${smallColorImg}
+	
 	# Check if the wallpaper is larger than the monitor
+	wallresW=$(identify -format '%w' ${wall})
+	wallresH=$(identify -format '%h' ${wall})
+	
 	if [[ ${wallresW} -ge ${resW} ]] && [[ ${wallresH} -ge ${resH} ]]
 	then
 		# Use default wallpaper
@@ -148,12 +139,13 @@ fi
 if [[ ${walColor} == "-1" ]]
 then
 	# Shrink the wallpaper for faster histogram analysis
+	compressedWall=${cache}/compressedWall.png
 	convert "${wallpaper}" -resize 500x500\> ${compressedWall}
+	
 	# Fetch the main color in the wallpaper
 	wallHex=#$(convert ${compressedWall} -define histogram:unique-colors=true -format %c histogram:info:- | sort -n | sed '$!d' | cut -d'#' -f2 | cut -c1-6)
 	processWallpaper
 fi
-
 
 # Send notification
 notify-send "paperWiz" "Wallpaper set"
