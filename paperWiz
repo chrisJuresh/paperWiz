@@ -106,10 +106,7 @@ feh --bg-fill "${wallpaper}" ${grey}
 wal -i "${wallpaper}" -n
 
 xdotool key Alt_L+F5
-pywal-discord -p ~/clone/powercord/src/Powercord/themes/Pywal-Discord
-wal_steam.py 
 telegram-palette-gen --wal
-spicetify update
 waldunst
 dunst &
 } &> /dev/null
