@@ -1,0 +1,17 @@
+<Application x:Class="PaperWiz.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PaperWiz"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <local:EnumEqualsConverter x:Key="EnumEquals" />
+            <local:BoolToVisibilityConverter x:Key="BoolToVis" />
+            <local:NullToVisibilityConverter x:Key="NullToVis" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

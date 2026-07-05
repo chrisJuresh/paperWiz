@@ -1,75 +1,82 @@
 # paperWiz
 ![Preview](https://imgur.com/iNTDo3D.gif)
 
-**Made for people with  HiDPI and / or Multiple Monitors.**
+**Give every monitor a wallpaper built from one image and its colour.**
+Made for people with HiDPI and / or multiple monitors.
 
-This script pulls a colour from your wallpaper and does 2 things with it,
+paperWiz pulls a colour from your wallpaper and uses it two ways:
 
- - Sets your second monitor as said colour.  -> You no longer have to look for a matching wallpaper / have the same one for both / tile the wallpaper across and have parts of it cut
- - Surrounds the wallpaper in said colour if the image is lower than your monitors resolution. -> You no longer have to worry about wallpapers being too low resolution for you monitor, and can also use vertical wallpapers.
+- **Your other monitors** are painted that colour — no more hunting for a matching second
+  wallpaper, duplicating one across screens, or spanning one and losing half of it.
+- **Smaller / vertical wallpapers get framed** in that colour instead of being stretched or
+  cropped — so low-resolution and portrait images look intentional on a big screen.
 
-**For vertical wallpapers you may want to downsize them with,**
- 
-`convert yourimage.png  -resize 600x1067\>  shrunk.png`
+There are two versions in this repo — a **native Windows app** and the original **Linux script** —
+each self-contained in its own folder. Jump to your platform below.
 
-to ensure that they are centered rather than touching the top and bottom of your screen. Adjust the size to suit your display resolution.
+---
 
-## Installation
-
-`git clone https://github.com/chrisJuresh/paperWiz.git`
-
-`cd paperWiz`
-
-`chmod +x install-paperWiz`
-
-`./install-paperWiz`
-
-`chmod +x paperWiz`
-
-You can either run the program with ./paperWiz or put the paperWiz file in your $PATH
-
-Remeber to change `resw` and `resh` to your main monitors resolutions.
-
-Set your `smallwallres` to the vertical resolution you would like your wallpapers to be shrunk to (if you specify it). I recommend doing [ Vertical resolution of your main monitor / 9 x 7 ]
-
-## Usage
-
-Description:
-  `paperWiz` is a script to set a wallpaper on two monitors. The first monitor is set with the chosen wallpaper and the second monitor is set with either the main color of the wallpaper or a color chosen from pyWal's cache.
-
-  * `-w`: The path to the **w**allpaper you want to set. This option is required.
-  
-  * `-p`: Set the **p**osition of the wallpaper on the main monitor (c: center (default), s: south, n: north, w: west,e: east)
-  
-  * `-c`: Set the **c**olor for the second monitor. Options: 0-15 for color0-color15 from pywal, -1 for main color from wallpaper (default).
-
-  * `-s`: **S**hrink the wallpaper.
-  
-  * `-h`: Display this **h**elp menu and exit.
-
-Example:
-  ./paperWiz -w /path/to/wallpaper.jpg -p s -c 0 -s
-
-I recommending adding this script to a bind in sxiv as such;
+## Download
 
 ```
-#!/bin/sh
-while read file
-do
-	case "$1" in
-		"equal") paperWiz -w "$file" -c 4 & ;;
-		"minus") paperWiz -w "$file" -c 4 -s & ;;
-		"0") paperWiz -w "$file" & ;;
-		"9") paperWiz -w "$file" -s & ;;
-		"8") paperWiz -w "$file" -p s & ;;
-	esac
-done
+git clone https://github.com/chrisJuresh/paperWiz.git
 ```
 
-## Dependencies
+…or click the green **Code → Download ZIP** button on GitHub and extract it.
 
-pywal (for pywal colors)
+---
 
-imagemagick 
+## 🪟 Windows
 
-feh 
+A native app (C# / .NET 8 / WPF) that sets a real per-monitor wallpaper via the Windows
+`IDesktopWallpaper` API — with a live multi-monitor preview, drag-and-drop, folder browsing, a
+pywal-style colour palette, and changes that **apply automatically** as you make them.
+
+**Install — just double-click [`install.bat`](install.bat).**
+
+It builds a self-contained `PaperWiz.exe`, installs it to `%LOCALAPPDATA%\Programs\paperWiz`,
+adds **Start-menu + Desktop shortcuts**, and registers it under **Settings → Apps**. No admin
+rights needed. Then find **paperWiz** in the Start menu and **right-click → Pin to taskbar**.
+
+- **Requirements:** Windows 10 (1903+) or 11. The installer needs the free
+  [.NET 8 SDK](https://dot.net) to build the app the first time; the built `.exe` itself bundles
+  everything and runs with nothing installed.
+- The `.exe` isn't code-signed, so the first launch may show a **"Windows protected your PC"**
+  prompt — click **More info → Run anyway**.
+- **Uninstall** any time from **Settings → Apps**, or run `windows\uninstall.bat`.
+
+**Full Windows guide → [windows/README.md](windows/README.md)**
+
+---
+
+## 🐧 Linux
+
+The original shell script (Bash · `feh` · `pywal` · ImageMagick) for X11.
+
+```
+chmod +x install-paperWiz && ./install-paperWiz
+cd linux && chmod +x paperWiz
+./paperWiz -w /path/to/wallpaper.jpg
+```
+
+- **Dependencies:** `pywal`, `imagemagick`, `feh`.
+- Set `resW` / `resH` in [`linux/paperWiz`](linux/paperWiz) to your main monitor's resolution.
+
+**Full Linux guide → [linux/README.md](linux/README.md)**
+
+---
+
+## Repo layout
+
+```
+paperWiz/
+├── install.bat            # Windows: double-click to install the app
+├── install-paperWiz       # Linux: creates the cache dir
+├── windows/               # native C#/WPF app  (see windows/README.md)
+│   └── src/PaperWiz/       # source
+└── linux/                 # original Bash script + docs  (see linux/README.md)
+    └── paperWiz
+```
+
+Both versions share the same idea; they're implemented independently so each fits its platform
+natively.

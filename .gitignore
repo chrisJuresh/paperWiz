@@ -1,0 +1,15 @@
+# ---- .NET / Windows build artifacts ----
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+.vs/
+publish/
+*.binlog
+
+# ---- Rider / VS ----
+.idea/
+
+# ---- OS cruft ----
+Thumbs.db
+.DS_Store
