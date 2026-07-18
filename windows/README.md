@@ -68,7 +68,8 @@ You can also open `windows\PaperWiz.sln` in Visual Studio 2022 and press F5.
 
 1. **Choose a wallpaper** — drag an image onto the window, click the preview to browse for a
    file, or click **Open folder…** to load a whole folder as a **thumbnail gallery** and click
-   any photo to try it.
+   any photo to try it. Use **Rotate left** / **Rotate right** for photos that need turning;
+   rotation is reflected in the preview and remembered across restarts.
 2. **Pick which display shows it** — click a monitor in the live preview. The others get the
    accent colour.
 3. **Set the accent colour** — the accent card offers, in order:
@@ -119,6 +120,9 @@ see per monitor is what gets set.
   maps 1:1 regardless of DPI.
 
 Generated images are cached in `%LOCALAPPDATA%\PaperWiz\cache`.
+The last wallpaper and placement choices are saved in `%LOCALAPPDATA%\PaperWiz\settings.json`
+and restored automatically the next time the app starts. The installer also adds a silent
+per-user sign-in entry that reapplies the saved wallpaper after Windows restarts, then exits.
 
 ## Project layout
 

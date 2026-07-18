@@ -62,12 +62,16 @@ public sealed class MainViewModel : ViewModelBase
     private readonly WallpaperService _service = new();
 
     private IReadOnlyList<MonitorInfo> _monitorInfos = Array.Empty<MonitorInfo>();
+    private BitmapSource? _sourceWallpaperThumbnail;
+    private int _sourcePixelWidth;
+    private int _sourcePixelHeight;
     private int _wallPixelWidth;
     private int _wallPixelHeight;
     private bool _updatingAccent;
     private bool _pickerOpen;
     private int _folderToken;
     private readonly DispatcherTimer _applyTimer;
+    private bool _restoringSettings = true;
 
     /// <summary>
     /// The label of the palette entry the accent follows (e.g. "Most common", "Darkest",
@@ -83,6 +87,8 @@ public sealed class MainViewModel : ViewModelBase
     {
         BrowseCommand = new RelayCommand(Browse);
         OpenFolderCommand = new RelayCommand(OpenFolder);
+        RotateLeftCommand = new RelayCommand(() => RotationDegrees -= 90);
+        RotateRightCommand = new RelayCommand(() => RotationDegrees += 90);
         RefreshMonitorsCommand = new RelayCommand(LoadMonitors);
         SelectMonitorCommand = new RelayCommand(p =>
         {
@@ -112,11 +118,26 @@ public sealed class MainViewModel : ViewModelBase
 
         LoadMonitors();
         SetAccent(Color.FromRgb(32, 34, 40));
+
+        try
+        {
+            RestoreSettings();
+        }
+        finally
+        {
+            _restoringSettings = false;
+        }
+
+        // Rebuild and apply the saved composites when the app is reopened. This also repairs
+        // the desktop after a Windows restart if the shell did not retain its cached mapping.
+        ScheduleApply();
     }
 
     // --- Commands ---
     public RelayCommand BrowseCommand { get; }
     public RelayCommand OpenFolderCommand { get; }
+    public RelayCommand RotateLeftCommand { get; }
+    public RelayCommand RotateRightCommand { get; }
     public RelayCommand RefreshMonitorsCommand { get; }
     public RelayCommand SelectMonitorCommand { get; }
     public RelayCommand SelectSwatchCommand { get; }
@@ -251,6 +272,24 @@ public sealed class MainViewModel : ViewModelBase
         set { if (SetProperty(ref _fitMode, value)) UpdatePreview(); }
     }
 
+    private int _rotationDegrees;
+    public int RotationDegrees
+    {
+        get => _rotationDegrees;
+        set
+        {
+            int normalized = ((value % 360) + 360) % 360;
+            if (normalized is not (0 or 90 or 180 or 270))
+                normalized = 0;
+            if (SetProperty(ref _rotationDegrees, normalized))
+            {
+                RefreshRotatedWallpaper();
+                UpdateShrinkDefault();
+                UpdatePreview();
+            }
+        }
+    }
+
     private bool _shrink;
     public bool Shrink
     {
@@ -302,6 +341,9 @@ public sealed class MainViewModel : ViewModelBase
     // --- Monitor enumeration ---
     public void LoadMonitors()
     {
+        string? selectedDeviceId = _monitorInfos
+            .FirstOrDefault(m => m.Index == _wallpaperMonitorIndex)?.DeviceId;
+
         try
         {
             _monitorInfos = MonitorService.GetMonitors();
@@ -320,7 +362,10 @@ public sealed class MainViewModel : ViewModelBase
             _wallpaperMonitorIndex = 0;
 
         int primary = _monitorInfos.FirstOrDefault(m => m.IsPrimary)?.Index ?? 0;
-        WallpaperMonitorIndex = Monitors.Count > 0 ? primary : 0;
+        int previous = selectedDeviceId is null
+            ? -1
+            : _monitorInfos.ToList().FindIndex(m => m.DeviceId == selectedDeviceId);
+        WallpaperMonitorIndex = Monitors.Count > 0 && previous >= 0 ? previous : primary;
 
         UpdateShrinkDefault();
         LayoutMonitors(_lastAreaWidth, _lastAreaHeight);
@@ -429,19 +474,26 @@ public sealed class MainViewModel : ViewModelBase
         try
         {
             var thumb = LoadFrozenBitmap(path, decodePixelWidth: 900);
-            _wallPixelWidth = thumb.PixelWidth;
-            _wallPixelHeight = thumb.PixelHeight;
+            _sourcePixelWidth = thumb.PixelWidth;
+            _sourcePixelHeight = thumb.PixelHeight;
 
             // Full-resolution dimensions for accurate cover/frame decisions.
             var (fullW, fullH) = ReadPixelSize(path);
             if (fullW > 0)
             {
-                _wallPixelWidth = fullW;
-                _wallPixelHeight = fullH;
+                _sourcePixelWidth = fullW;
+                _sourcePixelHeight = fullH;
             }
 
-            WallpaperThumbnail = thumb;
+            bool isDifferentWallpaper = !string.Equals(path, WallpaperPath, StringComparison.OrdinalIgnoreCase);
+            _sourceWallpaperThumbnail = thumb;
             WallpaperPath = path;
+            if (isDifferentWallpaper && _rotationDegrees != 0)
+            {
+                _rotationDegrees = 0;
+                OnPropertyChanged(nameof(RotationDegrees));
+            }
+            RefreshRotatedWallpaper();
 
             ExtractPalette(path);
             RefreshFolderSelection();
@@ -454,6 +506,30 @@ public sealed class MainViewModel : ViewModelBase
         {
             Status = $"Could not open image: {ex.Message}";
         }
+    }
+
+    private void RefreshRotatedWallpaper()
+    {
+        if (_sourceWallpaperThumbnail is null)
+            return;
+
+        if (_rotationDegrees == 0)
+        {
+            WallpaperThumbnail = _sourceWallpaperThumbnail;
+        }
+        else
+        {
+            var rotated = new TransformedBitmap(
+                _sourceWallpaperThumbnail,
+                new RotateTransform(_rotationDegrees));
+            rotated.Freeze();
+            WallpaperThumbnail = rotated;
+        }
+
+        bool swapsAxes = _rotationDegrees is 90 or 270;
+        _wallPixelWidth = swapsAxes ? _sourcePixelHeight : _sourcePixelWidth;
+        _wallPixelHeight = swapsAxes ? _sourcePixelWidth : _sourcePixelHeight;
+        OnPropertyChanged(nameof(WallpaperDimensions));
     }
 
     private void ExtractPalette(string path)
@@ -671,6 +747,10 @@ public sealed class MainViewModel : ViewModelBase
     {
         if (!HasWallpaper || Monitors.Count == 0)
             return;
+        if (_restoringSettings)
+            return;
+
+        SaveSettings();
         _applyTimer.Stop();
         _applyTimer.Start();
     }
@@ -696,6 +776,7 @@ public sealed class MainViewModel : ViewModelBase
                 var options = BuildOptions();
                 var infos = _monitorInfos;
                 await Task.Run(() => _service.Apply(infos, options));
+                SaveSettings();
                 Status = $"Applied to {infos.Count} display{(infos.Count == 1 ? "" : "s")}.";
             }
             while (_applyPending); // pick up any change that arrived mid-apply
@@ -711,6 +792,13 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Apply immediately, used by the silent sign-in restoration path.</summary>
+    public Task ApplyNowAsync()
+    {
+        _applyTimer.Stop();
+        return RunApplyAsync();
+    }
+
     private PaperWizOptions BuildOptions() => new()
     {
         WallpaperPath = WallpaperPath!,
@@ -718,10 +806,75 @@ public sealed class MainViewModel : ViewModelBase
         AccentColor = Drawing.Color.FromArgb(255, _accentColor.R, _accentColor.G, _accentColor.B),
         Anchor = Anchor,
         FitMode = FitMode,
+        RotationDegrees = RotationDegrees,
         ShrinkHeight = Shrink ? ShrinkHeight : null,
         GoldenMargin = GoldenMargin,
         FillOtherMonitors = FillOtherMonitors,
     };
+
+    /// <summary>Persist the current choices so closing the app or rebooting loses nothing.</summary>
+    public void SaveSettings()
+    {
+        if (_restoringSettings || !HasWallpaper)
+            return;
+
+        var selectedMonitor = _monitorInfos.FirstOrDefault(m => m.Index == WallpaperMonitorIndex);
+        var settings = new PaperWizSettings
+        {
+            WallpaperPath = WallpaperPath,
+            WallpaperMonitorDeviceId = selectedMonitor?.DeviceId,
+            WallpaperMonitorIndex = WallpaperMonitorIndex,
+            AccentHex = $"#{_accentColor.R:X2}{_accentColor.G:X2}{_accentColor.B:X2}",
+            SelectedAccentKey = _selectedAccentKey,
+            Anchor = Anchor,
+            FitMode = FitMode,
+            RotationDegrees = RotationDegrees,
+            Shrink = Shrink,
+            ShrinkHeight = ShrinkHeight,
+            FillOtherMonitors = FillOtherMonitors,
+            GoldenMargin = GoldenMargin,
+        };
+
+        try { SettingsService.Save(settings); }
+        catch { /* Wallpaper application still works if settings cannot be written. */ }
+    }
+
+    private void RestoreSettings()
+    {
+        var settings = SettingsService.Load();
+        if (settings is null || string.IsNullOrWhiteSpace(settings.WallpaperPath))
+            return;
+
+        Anchor = Enum.IsDefined(settings.Anchor) ? settings.Anchor : Anchor.Center;
+        FitMode = Enum.IsDefined(settings.FitMode) ? settings.FitMode : FitMode.Auto;
+        ShrinkHeight = Math.Clamp(settings.ShrinkHeight, 120, 16000);
+        Shrink = settings.Shrink;
+        FillOtherMonitors = settings.FillOtherMonitors;
+        GoldenMargin = settings.GoldenMargin;
+
+        int monitorIndex = settings.WallpaperMonitorDeviceId is null
+            ? -1
+            : _monitorInfos.ToList().FindIndex(m => m.DeviceId == settings.WallpaperMonitorDeviceId);
+        if (monitorIndex < 0 && settings.WallpaperMonitorIndex >= 0 &&
+            settings.WallpaperMonitorIndex < _monitorInfos.Count)
+        {
+            monitorIndex = settings.WallpaperMonitorIndex;
+        }
+        if (monitorIndex >= 0)
+            WallpaperMonitorIndex = monitorIndex;
+
+        _selectedAccentKey = settings.SelectedAccentKey;
+        if (_selectedAccentKey is null && TryParseHex(settings.AccentHex, out Color customAccent))
+            SetAccent(customAccent);
+
+        if (File.Exists(settings.WallpaperPath))
+        {
+            SetWallpaper(settings.WallpaperPath);
+            RotationDegrees = settings.RotationDegrees;
+        }
+        else
+            Status = "The saved wallpaper file could not be found.";
+    }
 
     // --- Helpers ---
     private static BitmapImage LoadFrozenBitmap(string path, int decodePixelWidth)

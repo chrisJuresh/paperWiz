@@ -64,6 +64,9 @@ public sealed class PaperWizOptions
 
     public FitMode FitMode { get; init; } = FitMode.Auto;
 
+    /// <summary>Clockwise rotation in quarter turns (0, 90, 180, or 270 degrees).</summary>
+    public int RotationDegrees { get; init; }
+
     /// <summary>If set, the wallpaper is first shrunk so its height is at most this many pixels.</summary>
     public int? ShrinkHeight { get; init; }
 
@@ -75,4 +78,36 @@ public sealed class PaperWizOptions
 
     /// <summary>Fill every non-wallpaper monitor with the accent colour (original paperWiz behaviour).</summary>
     public bool FillOtherMonitors { get; init; } = true;
+}
+
+/// <summary>The user choices restored when paperWiz next starts.</summary>
+public sealed class PaperWizSettings
+{
+    public int Version { get; init; } = 1;
+
+    public string? WallpaperPath { get; init; }
+
+    /// <summary>
+    /// The stable shell device path is preferred over a list index because display order can
+    /// change after a reboot or docking/undocking.
+    /// </summary>
+    public string? WallpaperMonitorDeviceId { get; init; }
+
+    public int WallpaperMonitorIndex { get; init; }
+
+    public string AccentHex { get; init; } = "#202228";
+
+    /// <summary>
+    /// Palette role to re-derive from the image. Null means <see cref="AccentHex"/> is a fixed
+    /// custom colour.
+    /// </summary>
+    public string? SelectedAccentKey { get; init; } = "Most common";
+
+    public Anchor Anchor { get; init; } = Anchor.Center;
+    public FitMode FitMode { get; init; } = FitMode.Auto;
+    public int RotationDegrees { get; init; }
+    public bool Shrink { get; init; }
+    public int ShrinkHeight { get; init; } = 1080;
+    public bool FillOtherMonitors { get; init; } = true;
+    public bool GoldenMargin { get; init; }
 }

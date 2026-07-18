@@ -11,11 +11,13 @@ $cacheDir   = Join-Path $env:LOCALAPPDATA 'PaperWiz'
 $startLnk   = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\paperWiz.lnk'
 $desktopLnk = Join-Path ([Environment]::GetFolderPath('Desktop')) 'paperWiz.lnk'
 $reg        = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\paperWiz'
+$runReg     = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 
 Remove-Item $startLnk   -Force
 Remove-Item $desktopLnk -Force
 Remove-Item $cacheDir   -Recurse -Force
 Remove-Item $reg        -Recurse -Force
+Remove-ItemProperty $runReg -Name 'paperWiz'
 
 # Remove the program files last (this script lives inside $installDir, so schedule
 # the directory deletion after the process exits).
