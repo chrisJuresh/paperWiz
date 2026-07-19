@@ -30,7 +30,10 @@ public static class WallpaperComposer
     /// </summary>
     public static Bitmap ComposeWallpaper(string wallpaperPath, int monWidth, int monHeight, PaperWizOptions options)
     {
-        using Bitmap wallpaper = LoadPossiblyShrunk(wallpaperPath, options.ShrinkHeight);
+        using Bitmap wallpaper = LoadPossiblyRotatedAndShrunk(
+            wallpaperPath,
+            options.RotationDegrees,
+            options.ShrinkHeight);
 
         bool covers = wallpaper.Width >= monWidth && wallpaper.Height >= monHeight;
         bool useCover = options.FitMode switch
@@ -61,9 +64,17 @@ public static class WallpaperComposer
         return canvas;
     }
 
-    private static Bitmap LoadPossiblyShrunk(string path, int? shrinkHeight)
+    private static Bitmap LoadPossiblyRotatedAndShrunk(string path, int rotationDegrees, int? shrinkHeight)
     {
         var original = new Bitmap(path);
+        original.RotateFlip(NormalizeRotation(rotationDegrees) switch
+        {
+            90 => RotateFlipType.Rotate90FlipNone,
+            180 => RotateFlipType.Rotate180FlipNone,
+            270 => RotateFlipType.Rotate270FlipNone,
+            _ => RotateFlipType.RotateNoneFlipNone,
+        });
+
         if (shrinkHeight is not int target || original.Height <= target)
             return original;
 
@@ -80,6 +91,14 @@ public static class WallpaperComposer
         }
         original.Dispose();
         return shrunk;
+    }
+
+    private static int NormalizeRotation(int degrees)
+    {
+        int normalized = degrees % 360;
+        if (normalized < 0)
+            normalized += 360;
+        return normalized is 90 or 180 or 270 ? normalized : 0;
     }
 
     /// <summary>Scale-to-cover: fill the monitor, cropping the overflow, centred.</summary>

@@ -106,6 +106,13 @@
                                 <Button Grid.Column="2" Content="Open folder…" Command="{Binding OpenFolderCommand}" />
                             </Grid>
 
+                            <UniformGrid Rows="1" Columns="2" Margin="0,8,0,0">
+                                <Button Content="↶  Rotate left" Style="{StaticResource GhostButton}"
+                                        Command="{Binding RotateLeftCommand}" IsEnabled="{Binding HasWallpaper}" />
+                                <Button Content="↷  Rotate right" Style="{StaticResource GhostButton}"
+                                        Command="{Binding RotateRightCommand}" IsEnabled="{Binding HasWallpaper}" />
+                            </UniformGrid>
+
                             <!-- Folder gallery -->
                             <StackPanel Margin="0,12,0,0"
                                         Visibility="{Binding HasFolderImages, Converter={StaticResource BoolToVis}}">

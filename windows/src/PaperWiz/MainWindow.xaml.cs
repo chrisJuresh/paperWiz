@@ -16,6 +16,12 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        ViewModel?.SaveSettings();
+        base.OnClosed(e);
+    }
+
     private MainViewModel? ViewModel => DataContext as MainViewModel;
 
     private void OnPreviewResized(object sender, SizeChangedEventArgs e) =>

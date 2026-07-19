@@ -71,6 +71,12 @@ function New-Shortcut($linkPath) {
 New-Shortcut (Join-Path $startDir 'paperWiz.lnk')
 New-Shortcut (Join-Path $desktop  'paperWiz.lnk')
 
+# --- restore the wallpaper after Windows sign-in (silent, exits immediately) ----------
+$runReg = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+New-Item -Path $runReg -Force | Out-Null
+New-ItemProperty -Path $runReg -Name 'paperWiz' -PropertyType String `
+    -Value "`"$exePath`" --restore-wallpaper" -Force | Out-Null
+
 # --- register under "Installed Apps" (HKCU, no admin) --------------------------
 $reg = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\paperWiz'
 New-Item -Path $reg -Force | Out-Null
