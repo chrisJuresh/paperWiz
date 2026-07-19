@@ -1,4 +1,5 @@
 # paperWiz
+![Preview](https://imgur.com/iNTDo3D.gif)
 
 **Per-monitor wallpapers that share one image's colour — so every screen matches, whatever its size or shape.**
 
